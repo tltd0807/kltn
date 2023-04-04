@@ -1,3 +1,4 @@
+const path = require('path');
 const express = require('express');
 const morgan = require('morgan');
 const rateLimit = require('express-rate-limit');
@@ -5,8 +6,11 @@ const helmet = require('helmet');
 const mongoSanitize = require('express-mongo-sanitize');
 const xss = require('xss-clean');
 
+const userRouter = require('./routes/userRoutes');
+
 const app = express();
 
+app.use(express.static(path.join(__dirname, 'public')));
 // 1 =)global middleware
 // set security HTTP headers
 app.use(helmet());
@@ -39,5 +43,6 @@ app.use((req, res, next) => {
 });
 
 // Routes
+app.use('/api/v1/users', userRouter);
 
 module.exports = app;
