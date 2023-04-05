@@ -23,21 +23,43 @@ const userSchema = mongoose.Schema({
   },
   photo: {
     type: String,
-    default: 'default.jpg',
+    default: 'http://127.0.0.1:8000/img/default.jpg',
   },
   role: {
     type: String,
     enum: ['user', 'admin'],
     default: 'user',
   },
-  shippingAdress: [
+  shippingAddress: [
     {
-      fullName: { type: String, required: true },
-      address: { type: String, required: true },
-      district: { type: String, required: true },
-      city: { type: String, required: true },
-      postalCode: { type: String, required: true },
-      country: { type: String, required: true },
+      fullName: {
+        type: String,
+        required: [true, 'Please provide your fullname'],
+      },
+      address: {
+        type: String,
+        required: [true, 'Please provide your address'],
+      },
+      district: {
+        type: String,
+        required: [true, 'Please provide your district'],
+      },
+      city: { type: String, required: [true, 'Please provide your city'] },
+      postalCode: {
+        type: String,
+        required: [true, 'Please provide your postalCode'],
+        validate: {
+          // Just work on CREATE and SAVE
+          validator: function (val) {
+            return val.length === 5 || val.length === 6;
+          },
+          message: 'Invalid postal code',
+        },
+      },
+      country: {
+        type: String,
+        default: 'Viet Nam',
+      },
     },
   ],
   password: {

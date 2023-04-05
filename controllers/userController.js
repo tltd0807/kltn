@@ -2,12 +2,14 @@ const fs = require('fs');
 const multer = require('multer');
 const sharp = require('sharp');
 
-const AppError = require('../utils/appError');
 const User = require('./../models/userModel');
+
+const AppError = require('../utils/appError');
 const catchAsync = require('./../utils/catchAsync');
 const factory = require('./handlerFactory');
 
 const multerStorage = multer.memoryStorage();
+
 const multerFilter = (req, file, cb) => {
   if (file.mimetype.startsWith('image')) {
     cb(null, true);
@@ -28,14 +30,15 @@ exports.resizeUserPhoto = catchAsync(async (req, res, next) => {
   // xem xét xóa hình cũ sau khi cập nhật
 
   //   khi protect rồi thì có thể req.user.id
-  const dir = `public/img/users/userId`;
+  const dir = `public/img/users/${req.user.id}`;
   if (!fs.existsSync(dir)) {
     fs.mkdirSync(dir, { recursive: true }, (err) => {
       if (err) throw err;
     });
   }
   //   req.file.filename = `user-${req.user.id}-${Date.now()}.jpeg`;
-  req.file.filename = `user-userId-${Date.now()}.jpeg`;
+  // req.file.filename = `user-${req.user.id}-${Date.now()}.jpeg`;
+  req.file.filename = `user-${req.user.id}.jpeg`;
   await sharp(req.file.buffer)
     .resize(500, 500)
     .toFormat('jpeg')
@@ -64,12 +67,12 @@ exports.updateMe = catchAsync(async (req, res, next) => {
     );
   // 2) Update user document
   const filteredBody = filterObj(req.body, 'firstName', 'lastName', 'email');
-  if (req.file) filteredBody.photo = req.file.filename;
-  //   const updateUser = await User.findByIdAndUpdate(req.user.id, filteredBody, {
-  //     new: true,
-  //     runValidators: true,
-  //   });
-  const updateUser = await User.findByIdAndUpdate(req.params.id, filteredBody, {
+  if (req.file)
+    filteredBody.photo = `${req.protocol}://${req.get('host')}/img/users/${
+      req.user.id
+    }/${req.file.filename}`;
+
+  const updateUser = await User.findByIdAndUpdate(req.user.id, filteredBody, {
     new: true,
     runValidators: true,
   });
@@ -106,6 +109,64 @@ exports.updateUser = catchAsync(async (req, res, next) => {
   });
 });
 
+exports.addShippingAddress = catchAsync(async (req, res, next) => {
+  const filteredBody = filterObj(
+    req.body,
+    'fullName',
+    'address',
+    'district',
+    'city',
+    'postalCode',
+    'country'
+  );
+  const shipArr = [...req.user.shippingAddress];
+  shipArr.push(filteredBody);
+  // console.log(shipArr);
+  const updateUser = await User.findByIdAndUpdate(
+    req.user.id,
+    { shippingAddress: shipArr },
+    {
+      new: true,
+      runValidators: true,
+    }
+  );
+
+  res.status(200).json({ status: 'success', data: { user: updateUser } });
+});
+exports.getAllAddresses = catchAsync(async (req, res, next) => {
+  res
+    .status(200)
+    .json({ status: 'success', data: { address: req.user.shippingAddress } });
+});
+exports.getShippingAddressById = catchAsync(async (req, res, next) => {
+  const address = req.user.shippingAddress.filter(
+    (item) => item.id === req.params.id
+  );
+
+  res.status(200).json({ status: 'success', data: { address } });
+});
+exports.deleteShippingAddress = catchAsync(async (req, res, next) => {
+  const address = req.user.shippingAddress.filter(
+    (item) => item.id !== req.params.id
+  );
+  await User.findByIdAndUpdate(
+    req.user.id,
+    { shippingAddress: address },
+    {
+      new: true,
+      runValidators: true,
+    }
+  );
+  res.status(204).json({ status: 'success' });
+});
+
+exports.getUserByEmail = catchAsync(async (req, res, next) => {
+  const user = await User.findOne({ email: req.body.email });
+  if (!user) {
+    return next(new AppError('No document found with that ID', 404));
+  }
+  res.status(200).json({ status: 'success', data: { data: user } });
+});
 exports.getAllUsers = factory.getAll(User);
 exports.getUser = factory.getOne(User);
 // change password k suwr dungj update vif nó k có save hay create nên nó k có chạy validator

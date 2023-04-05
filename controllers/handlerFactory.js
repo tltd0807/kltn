@@ -47,7 +47,8 @@ exports.getOne = (Model, popOptions) =>
 exports.getAll = (Model) =>
   catchAsync(async (req, res, next) => {
     // to allow for nested GET reviews on tour (hack)
-    let filter = {};
+    // let filter = {};
+    const filter = {};
     // if (req.params.tourId) filter = { tour: req.params.tourId };
     // execute query
     const features = new APIFeatures(Model.find(filter), req.query)
