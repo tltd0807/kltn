@@ -12,7 +12,7 @@ router.patch('/reset-password/:token', authController.resetPassword);
 
 // tất cả middleware đi sau cái này đều đã được protect tại vì middleware chạy tuần tự
 router.use(authController.protect);
-
+router.get('/me-test', authController.isLoggedIn);
 router.patch('/change-password', authController.updatePassword);
 router.get('/me', userController.getMe, userController.getUser);
 
