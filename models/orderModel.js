@@ -58,8 +58,11 @@ const orderSchema = new mongoose.Schema(
       ref: 'User',
       required: [true, 'Order must belong to a user'],
     },
-    //   HERE chờ để xem là có ấy hay k
-    shippingAdress: String,
+    address: {
+      type: mongoose.Schema.ObjectId,
+      ref: 'Address',
+      required: [true, 'Order must have an address'],
+    },
   },
   {
     toJSON: { virtuals: true },

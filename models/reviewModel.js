@@ -22,7 +22,10 @@ const reviewSchema = new mongoose.Schema(
       type: String,
       required: [true, 'Review can not have empty comment!'],
     },
-
+    isApproved: {
+      type: Boolean,
+      default: false,
+    },
     createdAt: {
       type: Date,
       default: Date.now,

@@ -30,26 +30,6 @@ const userSchema = mongoose.Schema({
     enum: ['user', 'admin'],
     default: 'user',
   },
-  shippingAddress: [
-    {
-      fullName: {
-        type: String,
-        required: [true, 'Please provide your fullname'],
-      },
-      address: {
-        type: String,
-        required: [true, 'Please provide your address'],
-      },
-      phoneNo: {
-        type: String,
-        required: [true, 'Please provide your phone number'],
-      },
-      isDefault: {
-        type: Boolean,
-        default: false,
-      },
-    },
-  ],
   password: {
     type: String,
     require: [true, 'Please provide your password'],
