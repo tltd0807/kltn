@@ -71,7 +71,6 @@ exports.updateMe = catchAsync(async (req, res, next) => {
     filteredBody.photo = `${req.protocol}://${req.get('host')}/img/users/${
       req.user.id
     }/${req.file.filename}`;
-
   const updateUser = await User.findByIdAndUpdate(req.user.id, filteredBody, {
     new: true,
     runValidators: true,
@@ -110,15 +109,7 @@ exports.updateUser = catchAsync(async (req, res, next) => {
 });
 
 exports.addShippingAddress = catchAsync(async (req, res, next) => {
-  const filteredBody = filterObj(
-    req.body,
-    'fullName',
-    'address',
-    'district',
-    'city',
-    'postalCode',
-    'country'
-  );
+  const filteredBody = filterObj(req.body, 'fullName', 'address', 'phoneNo');
   const shipArr = [...req.user.shippingAddress];
   shipArr.push(filteredBody);
   // console.log(shipArr);

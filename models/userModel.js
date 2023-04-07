@@ -40,25 +40,13 @@ const userSchema = mongoose.Schema({
         type: String,
         required: [true, 'Please provide your address'],
       },
-      district: {
+      phoneNo: {
         type: String,
-        required: [true, 'Please provide your district'],
+        required: [true, 'Please provide your phone number'],
       },
-      city: { type: String, required: [true, 'Please provide your city'] },
-      postalCode: {
-        type: String,
-        required: [true, 'Please provide your postalCode'],
-        validate: {
-          // Just work on CREATE and SAVE
-          validator: function (val) {
-            return val.length === 5 || val.length === 6;
-          },
-          message: 'Invalid postal code',
-        },
-      },
-      country: {
-        type: String,
-        default: 'Viet Nam',
+      isDefault: {
+        type: Boolean,
+        default: false,
       },
     },
   ],

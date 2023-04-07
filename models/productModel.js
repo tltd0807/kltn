@@ -1,9 +1,93 @@
-const crypto = require('crypto');
 const mongoose = require('mongoose');
-const validator = require('validator');
-const bcrypt = require('bcryptjs');
+const slugify = require('slugify');
+// const validator = require('validator');
 
-const productSchema = mongoose.Schema({});
+const productSchema = mongoose.Schema(
+  {
+    name: {
+      type: String,
+      require: [true, 'Product must have a name'],
+    },
+    description: {
+      type: String,
+      require: [true, 'Product must have a description'],
+    },
+    price: {
+      type: Number,
+      require: [true, 'Product must have a price'],
+    },
+    discount: {
+      // add validator ở đây kiểm tra 0-10%
+      percent: {
+        type: Number,
+        default: 0,
+      },
+      dueTo: Date,
+    },
+    config: {
+      color: {
+        type: String,
+        require: [true, 'Product must have a color'],
+      },
+      size: {
+        type: String,
+        require: [true, 'Product must have a size'],
+      },
+      stock: {
+        type: Number,
+        default: 0,
+      },
+    },
+
+    imageCover: {
+      type: String,
+      required: [true, 'a product must have a cover image'],
+    },
+    images: [String],
+    gender: {
+      type: String,
+      enum: ['unisex', 'male', 'female'],
+      default: 'unisex',
+    },
+    category: {
+      type: mongoose.Schema.ObjectId,
+      ref: 'Category',
+      required: [true, 'Product must belong to a category.'],
+    },
+    slug: String,
+    soldAmount: Number,
+    averageRate: {
+      type: Number,
+      default: 1,
+      min: [1, 'Rating must be above 1.0'],
+      max: [5, 'Rating must be below 5.0'],
+      set: (val) => Math.round(val * 10) / 10,
+    },
+    numberOfReview: {
+      type: Number,
+      default: 0,
+    },
+  },
+  {
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true },
+  }
+);
+productSchema.index({ price: 1, averageRate: -1 });
+
+// virtual populate
+productSchema.virtual('reviews', {
+  ref: 'Review',
+  foreignField: 'product',
+  localField: '_id',
+});
+
+productSchema.pre('save', function (next) {
+  // this prefer to the current processing document
+  this.slug = slugify(this.name, { lower: true });
+  // If it just 1 middleware then you can ignore next() but just use it because it is the best practice
+  next();
+});
 
 const Product = mongoose.model('Product', productSchema);
 
