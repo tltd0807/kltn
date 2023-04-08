@@ -46,23 +46,31 @@ exports.getOne = (Model, popOptions) =>
 
 exports.getAll = (Model) =>
   catchAsync(async (req, res, next) => {
-    // to allow for nested GET reviews on tour (hack)
+    // to allow for nested GET reviews on product (hack)
     let filter = {};
-    if (req.params.productId) filter = { tour: req.params.productId };
+    if (req.params.productId) filter = { product: req.params.productId };
+    const page = req.query.page * 1 || 1;
+    const limit = req.query.limit * 1 || 25;
     // execute query
     const features = new APIFeatures(Model.find(filter), req.query)
       .filter()
       .sort()
       .limitFields()
       .paginate();
-    // const docs = await features.query.explain();
+
+    const total = await Model.countDocuments();
     const docs = await features.query;
+
+    const totalPage =
+      total % limit === 0 ? total / limit : Math.round(total / limit + 0.5);
 
     // Send response
     res.status(200).json({
       status: 'success',
       requestAt: req.requestTime,
       result: docs.length,
+      totalPage: totalPage,
+      currentPage: page,
       data: { data: docs },
     });
   });

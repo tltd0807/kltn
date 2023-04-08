@@ -108,49 +108,6 @@ exports.updateUser = catchAsync(async (req, res, next) => {
   });
 });
 
-exports.addShippingAddress = catchAsync(async (req, res, next) => {
-  const filteredBody = filterObj(req.body, 'fullName', 'address', 'phoneNo');
-  const shipArr = [...req.user.shippingAddress];
-  shipArr.push(filteredBody);
-  // console.log(shipArr);
-  const updateUser = await User.findByIdAndUpdate(
-    req.user.id,
-    { shippingAddress: shipArr },
-    {
-      new: true,
-      runValidators: true,
-    }
-  );
-
-  res.status(200).json({ status: 'success', data: { user: updateUser } });
-});
-exports.getAllAddresses = catchAsync(async (req, res, next) => {
-  res
-    .status(200)
-    .json({ status: 'success', data: { address: req.user.shippingAddress } });
-});
-exports.getShippingAddressById = catchAsync(async (req, res, next) => {
-  const address = req.user.shippingAddress.filter(
-    (item) => item.id === req.params.id
-  );
-
-  res.status(200).json({ status: 'success', data: { address } });
-});
-exports.deleteShippingAddress = catchAsync(async (req, res, next) => {
-  const address = req.user.shippingAddress.filter(
-    (item) => item.id !== req.params.id
-  );
-  await User.findByIdAndUpdate(
-    req.user.id,
-    { shippingAddress: address },
-    {
-      new: true,
-      runValidators: true,
-    }
-  );
-  res.status(204).json({ status: 'success' });
-});
-
 exports.getUserByEmail = catchAsync(async (req, res, next) => {
   const user = await User.findOne({ email: req.body.email });
   if (!user) {

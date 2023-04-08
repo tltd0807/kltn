@@ -16,16 +16,6 @@ router.get('/me-test', authController.isLoggedIn);
 router.patch('/change-password', authController.updatePassword);
 router.get('/me', userController.getMe, userController.getUser);
 
-router
-  .route('/shippingAddress')
-  .get(userController.getAllAddresses)
-  .patch(userController.addShippingAddress);
-
-router
-  .route('/shippingAddress/:id')
-  .get(userController.getShippingAddressById)
-  .delete(userController.deleteShippingAddress);
-
 router.patch(
   '/update-me',
   userController.uploadUserPhoto,

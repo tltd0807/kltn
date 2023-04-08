@@ -36,10 +36,6 @@ const orderSchema = new mongoose.Schema(
       default: 'new',
       enum: ['new', 'processing', 'done'],
     },
-    isPaid: {
-      type: Boolean,
-      default: false,
-    },
     createAt: Date,
     paymentMethod: {
       type: String,

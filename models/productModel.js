@@ -49,6 +49,10 @@ const productSchema = mongoose.Schema(
       enum: ['unisex', 'male', 'female'],
       default: 'unisex',
     },
+    isShow: {
+      type: Boolean,
+      default: true,
+    },
     category: {
       type: mongoose.Schema.ObjectId,
       ref: 'Category',
@@ -86,6 +90,14 @@ productSchema.pre('save', function (next) {
   // this prefer to the current processing document
   this.slug = slugify(this.name, { lower: true });
   // If it just 1 middleware then you can ignore next() but just use it because it is the best practice
+  next();
+});
+
+productSchema.pre(/^find/, function (next) {
+  // "this" refer to the query object
+  this.find({ isShow: { $ne: false } });
+  // this.start = Date.now();
+
   next();
 });
 

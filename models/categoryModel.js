@@ -27,7 +27,7 @@ categorySchema.pre('save', function (next) {
 // virtual populate
 categorySchema.virtual('products', {
   ref: 'Product',
-  foreignField: 'tour',
+  foreignField: 'category',
   localField: '_id',
 });
 const Category = mongoose.model('Product', categorySchema);
