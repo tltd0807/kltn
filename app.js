@@ -11,6 +11,8 @@ const cors = require('cors');
 const globalErrorHandler = require('./controllers/errorController');
 
 const userRouter = require('./routes/userRoutes');
+const categoryRouter = require('./routes/categoryRoutes');
+const productRouter = require('./routes/productRoutes');
 const AppError = require('./utils/appError');
 
 const app = express();
@@ -51,6 +53,8 @@ app.use((req, res, next) => {
 
 // Routes
 app.use('/api/v1/users', userRouter);
+app.use('/api/v1/products', productRouter);
+app.use('/api/v1/category', categoryRouter);
 
 // when the request reach the line of code, it means no other route catch that request
 app.all('*', (req, res, next) => {

@@ -30,6 +30,6 @@ categorySchema.virtual('products', {
   foreignField: 'category',
   localField: '_id',
 });
-const Category = mongoose.model('Product', categorySchema);
+const Category = mongoose.model('Category', categorySchema);
 
 module.exports = Category;

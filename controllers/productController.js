@@ -24,7 +24,7 @@ const upload = multer({
 
 exports.uploadProductImages = upload.fields([
   { name: 'imageCover', maxCount: 1 },
-  { name: 'images', maxCount: 3 },
+  { name: 'images', maxCount: 4 },
 ]);
 
 exports.resizeProductImages = catchAsync(async (req, res, next) => {
@@ -39,9 +39,9 @@ exports.resizeProductImages = catchAsync(async (req, res, next) => {
   }
   req.body.imageCover = `product-${req.params.id}-cover.jpeg`;
   await sharp(req.files.imageCover[0].buffer)
-    .resize(2000, 1333)
+    .resize(600, 600)
     .toFormat('jpeg')
-    .jpeg({ quality: 90 })
+    .jpeg({ quality: 100 })
     .toFile(`${dir}/${req.body.imageCover}`);
 
   // 2)images
@@ -51,7 +51,7 @@ exports.resizeProductImages = catchAsync(async (req, res, next) => {
       const filename = `product-${req.params.id}-${i + 1}.jpeg`;
 
       await sharp(file.buffer)
-        .resize(2000, 1333)
+        .resize(300, 300)
         .toFormat('jpeg')
         .jpeg({ quality: 90 })
         .toFile(`public/img/products/${filename}`);
@@ -71,4 +71,17 @@ exports.createNewProduct = factory.createOne(Product);
 exports.updateProduct = factory.updateOne(Product);
 
 // DELETE thì chỉ set isShow=false thôi
-// exports.deleteProduct = factory.deleteOne(Product);
+exports.deleteProduct = catchAsync(async (req, res, next) => {
+  const product = await Product.findByIdAndUpdate(
+    req.params.id,
+    { isShow: false },
+    {
+      new: true,
+      runValidators: true,
+    }
+  );
+  if (!product) {
+    return next(new AppError('No document found with that ID', 404));
+  }
+  res.status(201).json({ status: 'success' });
+});

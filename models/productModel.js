@@ -10,34 +10,39 @@ const productSchema = mongoose.Schema(
     },
     description: {
       type: String,
-      require: [true, 'Product must have a description'],
+      default:
+        'Do màn hình và điều kiện ánh sáng khác nhau, màu sắc thực tế của sản phẩm có thể chênh lệch khoảng 3-5%',
     },
     price: {
       type: Number,
       require: [true, 'Product must have a price'],
     },
     discount: {
-      // add validator ở đây kiểm tra 0-10%
+      // add validator ở đây kiểm tra 0-90%
       percent: {
         type: Number,
         default: 0,
       },
       dueTo: Date,
     },
-    config: {
-      color: {
-        type: String,
-        require: [true, 'Product must have a color'],
-      },
-      size: {
-        type: String,
-        require: [true, 'Product must have a size'],
-      },
-      stock: {
-        type: Number,
-        default: 0,
-      },
+
+    color: {
+      type: String,
+      require: [true, 'Product must have a color'],
     },
+    inventory: [
+      {
+        size: {
+          type: String,
+          require: [true, 'Product must have a size'],
+        },
+        stock: {
+          type: Number,
+          default: 0,
+        },
+        soldAmount: Number,
+      },
+    ],
 
     imageCover: {
       type: String,
@@ -59,7 +64,6 @@ const productSchema = mongoose.Schema(
       required: [true, 'Product must belong to a category.'],
     },
     slug: String,
-    soldAmount: Number,
     averageRate: {
       type: Number,
       default: 1,
