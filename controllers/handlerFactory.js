@@ -55,7 +55,7 @@ exports.getAll = (Model) =>
       req.query.name = { ...newSearch };
     }
     const page = req.query.page * 1 || 1;
-    const limit = req.query.limit * 1 || 25;
+    const limit = req.query.limit * 1 || 10000;
     // execute query
     const features = new APIFeatures(Model.find(filter), req.query)
       .filter()

@@ -26,6 +26,7 @@ router.patch(
 );
 
 router.use(authController.restrictTo('admin'));
+
 router
   .route('/')
   .get(userController.getAllUsers)
