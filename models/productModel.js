@@ -22,10 +22,16 @@ const productSchema = mongoose.Schema(
       percent: {
         type: Number,
         default: 0,
+        validate: {
+          // Just work on CREATE and SAVE
+          validator: function (val) {
+            return val >= 0 && val <= 90;
+          },
+          message: 'discount percent must be between 0 and 90',
+        },
       },
       dueTo: Date,
     },
-
     color: {
       type: String,
       require: [true, 'Product must have a color'],
@@ -40,7 +46,10 @@ const productSchema = mongoose.Schema(
           type: Number,
           default: 0,
         },
-        soldAmount: Number,
+        soldAmount: {
+          type: Number,
+          default: 0,
+        },
       },
     ],
 
@@ -93,6 +102,14 @@ productSchema.virtual('reviews', {
 productSchema.pre('save', function (next) {
   // this prefer to the current processing document
   this.slug = slugify(this.name, { lower: true });
+  // If it just 1 middleware then you can ignore next() but just use it because it is the best practice
+  next();
+});
+productSchema.pre('save', function (next) {
+  // this prefer to the current processing document
+  if (this.description === '')
+    this.description =
+      'Do màn hình và điều kiện ánh sáng khác nhau, màu sắc thực tế của sản phẩm có thể chênh lệch khoảng 3-5%';
   // If it just 1 middleware then you can ignore next() but just use it because it is the best practice
   next();
 });

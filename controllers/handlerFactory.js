@@ -49,6 +49,11 @@ exports.getAll = (Model) =>
     // to allow for nested GET reviews on product (hack)
     let filter = {};
     if (req.params.productId) filter = { product: req.params.productId };
+    if (req.query.name) {
+      const newSearch = { $regex: `\\b${req.query.name}\\b` };
+      delete req.query.name;
+      req.query.name = { ...newSearch };
+    }
     const page = req.query.page * 1 || 1;
     const limit = req.query.limit * 1 || 25;
     // execute query

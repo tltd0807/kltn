@@ -29,34 +29,57 @@ exports.uploadProductImages = upload.fields([
 
 exports.resizeProductImages = catchAsync(async (req, res, next) => {
   if (!req.files.imageCover || !req.files.images) return next();
-
+  const productFolderName = `${req.body.name
+    .trim()
+    .toLowerCase()
+    .replace(' ', '-')}-${req.body.color
+    .toLowerCase()
+    .trim()
+    .replace(' ', '-')}`;
   // 1) cover image
-  const dir = `public/img/products/${req.params.id}`;
+  const dir =
+    `public/img/products/${req.body.category}/${req.user.id}/${productFolderName}`.replace(
+      ' ',
+      '-'
+    );
   if (!fs.existsSync(dir)) {
     fs.mkdirSync(dir, { recursive: true }, (err) => {
       if (err) throw err;
     });
   }
-  req.body.imageCover = `product-${req.params.id}-cover.jpeg`;
+  req.body.imageCover = `product-${productFolderName}-cover.jpeg`;
   await sharp(req.files.imageCover[0].buffer)
     .resize(600, 600)
     .toFormat('jpeg')
     .jpeg({ quality: 100 })
     .toFile(`${dir}/${req.body.imageCover}`);
 
+  req.body.imageCover = `${req.protocol}://${req.get('host')}/img/products/${
+    req.body.category
+  }/${req.user.id}/${productFolderName.replace(' ', '-')}/${
+    req.body.imageCover
+  }`;
+
   // 2)images
   req.body.images = [];
   await Promise.all(
     req.files.images.map(async (file, i) => {
-      const filename = `product-${req.params.id}-${i + 1}.jpeg`;
+      const filename = `product-${productFolderName}-${i + 1}.jpeg`.replace(
+        ' ',
+        '-'
+      );
 
       await sharp(file.buffer)
         .resize(300, 300)
         .toFormat('jpeg')
         .jpeg({ quality: 90 })
-        .toFile(`public/img/products/${filename}`);
+        .toFile(`${dir}/${filename}`);
 
-      req.body.images.push(filename);
+      req.body.images.push(
+        `${req.protocol}://${req.get('host')}/img/products/${
+          req.body.category
+        }/${req.user.id}/${productFolderName.replace(' ', '-')}/${filename}`
+      );
     })
   );
 

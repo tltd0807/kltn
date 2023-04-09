@@ -12,12 +12,14 @@ router.use(authController.protect);
 router.use(authController.restrictTo('admin'));
 
 router
-  .route('/:id')
+  .route('/')
   .post(
     productController.uploadProductImages,
     productController.resizeProductImages,
     productController.createNewProduct
-  )
+  );
+router
+  .route('/:id')
   .patch(
     productController.uploadProductImages,
     productController.resizeProductImages,
