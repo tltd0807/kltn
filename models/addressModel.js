@@ -18,6 +18,10 @@ const addressSchema = mongoose.Schema({
     type: String,
     required: [true, 'Please provide your phone number'],
   },
+  isDelete: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 const Address = mongoose.model('Address', addressSchema);

@@ -122,6 +122,15 @@ productSchema.pre(/^find/, function (next) {
   next();
 });
 
+productSchema.pre(/^find/, function (next) {
+  // tourSchema.pre('find', function (next) {
+  // "this" refer to the query object
+  this.find({ isShow: { $ne: false } });
+  this.start = Date.now();
+
+  next();
+});
+
 const Product = mongoose.model('Product', productSchema);
 
 module.exports = Product;

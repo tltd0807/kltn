@@ -54,10 +54,25 @@ const orderSchema = new mongoose.Schema(
       ref: 'User',
       required: [true, 'Order must belong to a user'],
     },
+    // Không ref mà lấy data từ user r lưu lại lúc create luôn
+    // address: {
+    //   type: mongoose.Schema.ObjectId,
+    //   ref: 'Address',
+    //   required: [true, 'Order must have an address'],
+    // },
     address: {
-      type: mongoose.Schema.ObjectId,
-      ref: 'Address',
-      required: [true, 'Order must have an address'],
+      phoneNo: {
+        type: String,
+        require: true,
+      },
+      addresDetail: {
+        type: String,
+        require: true,
+      },
+      fullName: {
+        type: String,
+        require: true,
+      },
     },
   },
   {

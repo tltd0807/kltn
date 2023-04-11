@@ -6,6 +6,7 @@ const router = express.Router();
 
 router.get('/', categoryController.getAllCategorys);
 router.get('/:id', categoryController.getCategoryById);
+
 router.use(authController.protect);
 router.use(authController.restrictTo('admin'));
 

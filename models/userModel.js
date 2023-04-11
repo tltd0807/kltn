@@ -30,6 +30,10 @@ const userSchema = mongoose.Schema({
     enum: ['user', 'admin'],
     default: 'user',
   },
+  defaultAddress: {
+    type: mongoose.Schema.ObjectId,
+    ref: 'Address',
+  },
   password: {
     type: String,
     require: [true, 'Please provide your password'],

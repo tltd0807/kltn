@@ -28,14 +28,15 @@ exports.uploadProductImages = upload.fields([
 ]);
 
 exports.resizeProductImages = catchAsync(async (req, res, next) => {
-  if (!req.files.imageCover || !req.files.images) return next();
+  if (!req.files || !req.files.imageCover || !req.files.images) return next();
   const productFolderName = `${req.body.name
     .trim()
     .toLowerCase()
-    .replace(' ', '-')}-${req.body.color
+    .replaceAll(' ', '-')}-${req.body.color
     .toLowerCase()
     .trim()
-    .replace(' ', '-')}`;
+    .replaceAll(' ', '-')}`;
+
   // 1) cover image
   const dir =
     `public/img/products/${req.body.category}/${req.user.id}/${productFolderName}`.replace(
@@ -47,16 +48,19 @@ exports.resizeProductImages = catchAsync(async (req, res, next) => {
       if (err) throw err;
     });
   }
-  req.body.imageCover = `product-${productFolderName}-cover.jpeg`;
+  req.body.imageCover = `product-${productFolderName}-cover.jpeg`.replace(
+    ' ',
+    '-'
+  );
   await sharp(req.files.imageCover[0].buffer)
-    .resize(600, 600)
+    .resize(1200, 1200)
     .toFormat('jpeg')
     .jpeg({ quality: 100 })
     .toFile(`${dir}/${req.body.imageCover}`);
 
   req.body.imageCover = `${req.protocol}://${req.get('host')}/img/products/${
     req.body.category
-  }/${req.user.id}/${productFolderName.replace(' ', '-')}/${
+  }/${req.user.id}/${productFolderName.replaceAll(' ', '-')}/${
     req.body.imageCover
   }`;
 
@@ -64,13 +68,13 @@ exports.resizeProductImages = catchAsync(async (req, res, next) => {
   req.body.images = [];
   await Promise.all(
     req.files.images.map(async (file, i) => {
-      const filename = `product-${productFolderName}-${i + 1}.jpeg`.replace(
+      const filename = `product-${productFolderName}-${i + 1}.jpeg`.replaceAll(
         ' ',
         '-'
       );
 
       await sharp(file.buffer)
-        .resize(300, 300)
+        .resize(1200, 1200)
         .toFormat('jpeg')
         .jpeg({ quality: 90 })
         .toFile(`${dir}/${filename}`);
@@ -78,18 +82,18 @@ exports.resizeProductImages = catchAsync(async (req, res, next) => {
       req.body.images.push(
         `${req.protocol}://${req.get('host')}/img/products/${
           req.body.category
-        }/${req.user.id}/${productFolderName.replace(' ', '-')}/${filename}`
+        }/${req.user.id}/${productFolderName.replaceAll(' ', '-')}/${filename}`
       );
     })
   );
 
   next();
 });
+exports.createNewProduct = factory.createOne(Product);
+
 exports.getAllProducts = factory.getAll(Product);
 
 exports.getProductById = factory.getOne(Product, { path: 'reviews' });
-
-exports.createNewProduct = factory.createOne(Product);
 
 exports.updateProduct = factory.updateOne(Product);
 
@@ -107,4 +111,22 @@ exports.deleteProduct = catchAsync(async (req, res, next) => {
     return next(new AppError('No document found with that ID', 404));
   }
   res.status(201).json({ status: 'success' });
+});
+/*eslint no-plusplus: ["error", { "allowForLoopAfterthoughts": true }]*/
+exports.updateProductInventory = catchAsync(async (req, res, next) => {
+  if (!req.body.inventory) return next();
+
+  const { inventory: productInventory } = await Product.findById(req.params.id);
+
+  const newInventory = productInventory.map((item) => {
+    for (let i = 0; i < req.body.inventory.length; i++) {
+      if (item.size === req.body.inventory[i].size) {
+        item.stock = req.body.inventory[i].stock;
+      }
+    }
+    return item;
+  });
+  req.body.inventory = [...newInventory];
+
+  return next();
 });

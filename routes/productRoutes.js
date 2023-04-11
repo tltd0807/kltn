@@ -1,10 +1,10 @@
 const express = require('express');
 const authController = require('./../controllers/authController');
 const productController = require('./../controllers/productController');
-// const reviewRouter = require('./../routes/reviewRoutes');
+const reviewRouter = require('./../routes/reviewRoutes');
 
 const router = express.Router();
-// router.use('/:productId/reviews', reviewRouter);
+router.use('/:productId/reviews', reviewRouter);
 router.get('/', productController.getAllProducts);
 router.get('/:id', productController.getProductById);
 
@@ -23,7 +23,9 @@ router
   .patch(
     productController.uploadProductImages,
     productController.resizeProductImages,
+    productController.updateProductInventory,
     productController.updateProduct
   )
   .delete(productController.deleteProduct);
+
 module.exports = router;
