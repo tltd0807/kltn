@@ -36,8 +36,6 @@ exports.resizeUserPhoto = catchAsync(async (req, res, next) => {
       if (err) throw err;
     });
   }
-  //   req.file.filename = `user-${req.user.id}-${Date.now()}.jpeg`;
-  // req.file.filename = `user-${req.user.id}-${Date.now()}.jpeg`;
   req.file.filename = `user-${req.user.id}.jpeg`;
   await sharp(req.file.buffer)
     .resize(500, 500)
@@ -118,3 +116,51 @@ exports.getUserByEmail = catchAsync(async (req, res, next) => {
 exports.getAllUsers = factory.getAll(User);
 exports.getUser = factory.getOne(User);
 // change password k suwr dungj update vif nó k có save hay create nên nó k có chạy validator
+
+exports.createAllAdress = catchAsync(async (req, res, next) => {
+  const { addresses, _id } = req.user;
+  addresses.push(req.body);
+  const updatedUser = await User.findByIdAndUpdate(
+    { _id: _id },
+    {
+      addresses: addresses,
+    }
+  );
+  res.status(201).json({ status: 'success', data: updatedUser });
+});
+exports.deleteAddress = catchAsync(async (req, res, next) => {
+  const { addressId } = req.params;
+  const { addresses, _id } = req.user;
+
+  const updatedAdresses = addresses.filter(
+    (address) => address._id.toString() !== addressId
+  );
+  const updatedUser = await User.findByIdAndUpdate(
+    { _id: _id },
+    {
+      addresses: updatedAdresses,
+    }
+  );
+  res.status(204).json({ status: 'success', data: updatedUser });
+});
+
+exports.updatedAdresses = catchAsync(async (req, res, next) => {
+  const { addressId } = req.params;
+  const { addresses, _id } = req.user;
+  const updatedAdresses = addresses.map((item) => {
+    if (item._id.toString() === addressId) {
+      item.fullName = req.body.fullName || item.fullName;
+      item.address = req.body.address || item.address;
+      item.phoneNo = req.body.phoneNo || item.phoneNo;
+    }
+    return item;
+  });
+  const updatedUser = await User.findByIdAndUpdate(
+    { _id: _id },
+    {
+      addresses: updatedAdresses,
+    }
+  );
+  res.status(201).json({ status: 'success', data: updatedUser });
+  next();
+});

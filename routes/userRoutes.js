@@ -1,11 +1,9 @@
 const express = require('express');
 const userController = require('./../controllers/userController');
 const authController = require('./../controllers/authController');
-const addressRouter = require('./../routes/addressRoutes');
 
 const router = express.Router();
 
-router.use('/address', addressRouter);
 router.post('/signup', authController.signup);
 router.post('/login', authController.login);
 router.get('/login', authController.logout);
@@ -14,9 +12,16 @@ router.patch('/reset-password/:token', authController.resetPassword);
 
 // tất cả middleware đi sau cái này đều đã được protect tại vì middleware chạy tuần tự
 router.use(authController.protect);
+
 router.get('/me-test', authController.isLoggedIn);
 router.patch('/change-password', authController.updatePassword);
 router.get('/me', userController.getMe, userController.getUser);
+
+router
+  .route('/addresses/:addressId')
+  .post(userController.createAllAdress)
+  .patch(userController.updatedAdresses)
+  .delete(userController.deleteAddress);
 
 router.patch(
   '/update-me',
