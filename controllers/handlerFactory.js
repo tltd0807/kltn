@@ -23,6 +23,7 @@ exports.updateOne = (Model) =>
   });
 exports.createOne = (Model) =>
   catchAsync(async (req, res) => {
+    // if (req.body.category) console.log(req.body.category);
     const newDoc = await Model.create(req.body);
 
     res.status(201).json({
