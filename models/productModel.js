@@ -8,6 +8,12 @@ const productSchema = mongoose.Schema(
       type: String,
       require: [true, 'Product must have a name'],
     },
+    customeId: {
+      type: String,
+      unique: true,
+      require: true,
+      uppercase: true,
+    },
     description: {
       type: String,
       default:
@@ -84,6 +90,10 @@ const productSchema = mongoose.Schema(
       type: Number,
       default: 0,
     },
+    createAt: {
+      type: Date,
+      default: Date.now(),
+    },
   },
   {
     toJSON: { virtuals: true },
@@ -113,7 +123,11 @@ productSchema.pre('save', function (next) {
   // If it just 1 middleware then you can ignore next() but just use it because it is the best practice
   next();
 });
-
+// không được hỏi thử cách khác
+// productSchema.pre('save', function (next) {
+//   this.customeId = `${this.name}-${this.color}`.replaceAll(' ', '-');
+//   next();
+// });
 productSchema.pre(/^find/, function (next) {
   // "this" refer to the query object
   this.find({ isShow: { $ne: false } });

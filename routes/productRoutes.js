@@ -16,6 +16,7 @@ router
   .post(
     productController.uploadProductImages,
     productController.resizeProductImages,
+    productController.checkId,
     productController.createNewProduct
   );
 router

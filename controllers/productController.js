@@ -89,6 +89,18 @@ exports.resizeProductImages = catchAsync(async (req, res, next) => {
 
   next();
 });
+exports.checkId = catchAsync(async (req, res, next) => {
+  const product = await Product.find({ customeId: req.body.customeId });
+  if (product.length === 0) {
+    if (typeof req.body.inventory === 'string') {
+      req.body.inventory = JSON.parse(req.body.inventory);
+    }
+    return next();
+  }
+
+  return next(new AppError('Mã sản phẩm đã tồn tại', 400));
+});
+
 exports.createNewProduct = factory.createOne(Product);
 
 exports.getAllProducts = factory.getAll(Product);
