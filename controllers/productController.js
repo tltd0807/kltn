@@ -29,6 +29,8 @@ exports.uploadProductImages = upload.fields([
 
 exports.resizeProductImages = catchAsync(async (req, res, next) => {
   if (!req.files || !req.files.imageCover || !req.files.images) return next();
+
+  // console.log('req.body.name: ', req.body.name);
   const productFolderName = `${req.body.name
     .trim()
     .toLowerCase()
@@ -128,6 +130,9 @@ exports.deleteProduct = catchAsync(async (req, res, next) => {
 exports.updateProductInventory = catchAsync(async (req, res, next) => {
   if (!req.body.inventory) return next();
 
+  if (typeof req.body.inventory === 'string') {
+    req.body.inventory = JSON.parse(req.body.inventory);
+  }
   const { inventory: productInventory } = await Product.findById(req.params.id);
 
   const newInventory = productInventory.map((item) => {
@@ -139,6 +144,15 @@ exports.updateProductInventory = catchAsync(async (req, res, next) => {
     return item;
   });
   req.body.inventory = [...newInventory];
-
+  // console.log(req.body);
   return next();
 });
+
+// exports.setCurrentProduct = catchAsync(async (req, res, next) => {
+//   const currentProduct = await Product.findById(req.params.id);
+//   console.log('currentProduct.name: ', currentProduct.name);
+//   req.body.name = currentProduct.name;
+//   req.body.color = currentProduct.color;
+//   req.body.category = currentProduct.category;
+//   return next();
+// });

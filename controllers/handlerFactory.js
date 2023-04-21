@@ -51,9 +51,14 @@ exports.getAll = (Model) =>
     let filter = {};
     if (req.params.productId) filter = { product: req.params.productId };
     if (req.query.name) {
-      const newSearch = { $regex: `\\b${req.query.name}\\b` };
+      const newSearch = { $regex: `\\b${req.query.name}\\b`, $options: 'i' };
       delete req.query.name;
       req.query.name = { ...newSearch };
+    }
+    if (req.query.gender) {
+      const newSearch = { $eq: `${req.query.gender}` };
+      delete req.query.gender;
+      req.query.gender = { ...newSearch };
     }
     const page = req.query.page * 1 || 1;
     const limit = req.query.limit * 1 || 10000;

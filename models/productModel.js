@@ -25,18 +25,15 @@ const productSchema = mongoose.Schema(
     },
     discount: {
       // add validator ở đây kiểm tra 0-90%
-      percent: {
-        type: Number,
-        default: 0,
-        validate: {
-          // Just work on CREATE and SAVE
-          validator: function (val) {
-            return val >= 0 && val <= 90;
-          },
-          message: 'discount percent must be between 0 and 90',
+      type: Number,
+      default: 0,
+      validate: {
+        // Just work on CREATE and SAVE
+        validator: function (val) {
+          return val >= 0 && val <= 90;
         },
+        message: 'discount percent must be between 0 and 90',
       },
-      dueTo: Date,
     },
     color: {
       type: String,
@@ -123,15 +120,12 @@ productSchema.pre('save', function (next) {
   // If it just 1 middleware then you can ignore next() but just use it because it is the best practice
   next();
 });
-// không được hỏi thử cách khác
-// productSchema.pre('save', function (next) {
-//   this.customeId = `${this.name}-${this.color}`.replaceAll(' ', '-');
-//   next();
-// });
+
 productSchema.pre(/^find/, function (next) {
-  // "this" refer to the query object
-  this.find({ isShow: { $ne: false } });
-  // this.start = Date.now();
+  this.populate({
+    path: 'category',
+    select: 'id name',
+  });
 
   next();
 });
