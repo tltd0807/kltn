@@ -11,5 +11,4 @@ exports.getCategoryById = factory.getOne(Category, {
 });
 
 exports.createNewCategory = factory.createOne(Category);
-
 exports.updateCategory = factory.updateOne(Category);

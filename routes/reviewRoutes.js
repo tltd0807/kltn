@@ -3,11 +3,10 @@ const reviewController = require('./../controllers/reviewController');
 const authController = require('./../controllers/authController');
 
 const router = express.Router({ mergeParams: true });
-// router.get('/', reviewController.getAllReviews);
-// router.post('/', authController.protect, reviewController.createNewReview);
+
 // { mergeParams: true } nhờ vào cái này mà thg createNewReview sẽ truy cập được param.tourId nếu endpoint là product/:productId/reviews
 router.use(authController.protect);
-// Chưa check đã mua hàng rồi thì mới được createNewReview
+// tạo review bth, giới hạn từ FE nha
 router
   .route('/')
   .get(reviewController.getAllReviews)

@@ -48,10 +48,12 @@ const productSchema = mongoose.Schema(
         stock: {
           type: Number,
           default: 0,
+          min: [0, 'Stock must be above 0'],
         },
         soldAmount: {
           type: Number,
           default: 0,
+          min: [0, 'soldAmount must be above 0'],
         },
       },
     ],
