@@ -104,7 +104,6 @@ orderSchema.pre(/^find/, function (next) {
   next();
 });
 
-// Chưa check
 orderSchema.pre('findOneAndUpdate', async function (next) {
   const updateData = this.getUpdate();
   // console.log(updateData);
@@ -133,9 +132,6 @@ orderSchema.pre('findOneAndUpdate', async function (next) {
       iventoryOfSize.stock += orderItem.quantity;
       iventoryOfSize.soldAmount -= orderItem.quantity;
 
-      // console.log('========================');
-      // console.log('iventoryOfSize: ', iventoryOfSize);
-      // console.log('productInventory: ', productInventory[0], productInventory[1]);
       const newInventory = productInventory.map((item) => {
         if (item.size === iventoryOfSize.size) {
           item.stock = iventoryOfSize.stock;
@@ -143,7 +139,7 @@ orderSchema.pre('findOneAndUpdate', async function (next) {
         }
         return item;
       });
-      // console.log('newInventory: ', newInventory[0], newInventory[1]);
+
       // eslint-disable-next-line no-await-in-loop
       await Product.findOneAndUpdate(
         { _id: orderItem.product },
@@ -152,10 +148,9 @@ orderSchema.pre('findOneAndUpdate', async function (next) {
           new: true,
         }
       );
-
-      next();
     }
   }
+  next();
 });
 
 // Calculate totalPrice
@@ -169,6 +164,7 @@ orderSchema.pre('save', function (next) {
 });
 
 orderSchema.pre('save', async function (next) {
+  // send mail to user that order  belong to (userId in order)
   let enoughStock = true;
   const items = [];
   this.orderItems.forEach(async (orderItem) => {

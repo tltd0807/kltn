@@ -12,10 +12,13 @@ router
   .route('/')
   .get(authController.restrictTo('admin'), orderController.getAllOrders)
   .post(orderController.getMe, orderController.createNewOrder);
+// UserId get from logged user
+router.route('/user').get(orderController.getAllOrdersByUser);
 
 router
   .route('/:id')
   .get(orderController.getOrder)
-  .patch(orderController.updateOrderStatus);
+  .patch(authController.restrictTo('admin'), orderController.updateOrderStatus)
+  .delete(orderController.updateToFail, orderController.updateOrderStatus);
 
 module.exports = router;
