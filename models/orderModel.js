@@ -54,7 +54,11 @@ const orderSchema = new mongoose.Schema(
       default: 'new',
       enum: ['new', 'processing', 'done', 'fail'],
     },
-    createAt: Date,
+
+    createdAt: {
+      type: Date,
+      default: Date.now(),
+    },
     paymentMethod: {
       type: String,
       default: 'COD',

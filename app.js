@@ -1,7 +1,7 @@
 const path = require('path');
 const express = require('express');
 const morgan = require('morgan');
-const rateLimit = require('express-rate-limit');
+// const rateLimit = require('express-rate-limit');
 // const helmet = require('helmet');
 const mongoSanitize = require('express-mongo-sanitize');
 const xss = require('xss-clean');
@@ -14,6 +14,7 @@ const userRouter = require('./routes/userRoutes');
 const categoryRouter = require('./routes/categoryRoutes');
 const productRouter = require('./routes/productRoutes');
 const orderRouter = require('./routes/orderRoutes');
+const voucherRouter = require('./routes/voucherRoutes');
 const AppError = require('./utils/appError');
 
 const app = express();
@@ -57,6 +58,7 @@ app.use('/api/v1/users', userRouter);
 app.use('/api/v1/products', productRouter);
 app.use('/api/v1/category', categoryRouter);
 app.use('/api/v1/orders', orderRouter);
+app.use('/api/v1/vouchers', voucherRouter);
 
 // when the request reach the line of code, it means no other route catch that request
 app.all('*', (req, res, next) => {

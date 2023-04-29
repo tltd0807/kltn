@@ -15,6 +15,7 @@ router
 // UserId get from logged user
 router.route('/user').get(orderController.getAllOrdersByUser);
 
+// viết cập nhật done cho order riêng
 router
   .route('/:id')
   .get(orderController.getOrder)

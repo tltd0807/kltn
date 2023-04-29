@@ -24,8 +24,9 @@ exports.updateOne = (Model) =>
 exports.createOne = (Model) =>
   catchAsync(async (req, res) => {
     // if (req.body.category) console.log(req.body.category);
+    console.log(req.body);
     const newDoc = await Model.create(req.body);
-
+    console.log('first');
     res.status(201).json({
       message: 'success',
       data: {

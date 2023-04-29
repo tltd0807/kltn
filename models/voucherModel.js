@@ -1,27 +1,35 @@
 const mongoose = require('mongoose');
 
-const voucherShema = new mongoose.Schema({
+const voucherShema = mongoose.Schema({
   name: {
     type: String,
     require: [true, 'Voucher must have a name'],
+    unique: true,
   },
   startDate: Date,
   expireDate: Date,
   discount: {
     type: Number,
     default: 0,
-  },
-  createAt: {
-    type: Date,
-    default: Date.now,
-  },
-  type: {
-    type: String,
-    default: 'percent',
-    enum: ['percent', 'number'],
+    min: 0,
   },
 });
+// voucherShema.pre(/^find/, function (next) {
+//   // tourSchema.pre('find', function (next) {
+//   // "this" refer to the query object
+//   this.find({
+//     startDate: {
+//       $gte: Date.now(),
+//     },
+//     expireDate: {
+//       $lte: Date.now(),
+//     },
+//   });
+//   this.startDate = Date.now();
 
-const Voucher = mongoose.Model('Voucher', voucherShema);
+//   next();
+// });
+
+const Voucher = mongoose.model('Voucher', voucherShema);
 
 module.exports = Voucher;
