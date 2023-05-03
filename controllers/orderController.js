@@ -12,85 +12,10 @@ exports.getMe = (req, res, next) => {
   req.body.user = req.user._id;
   next();
 };
-exports.updateToFail = (req, res, next) => {
-  req.body.orderStatus = 'fail';
-  next();
-};
+
 // delete thif cho update thanh fail
 // exports.deleteOrder = factory.deleteOne(Order);
-exports.updateOrderStatus = catchAsync(async (req, res, next) => {
-  const orderBeforUpdate = await Order.findById(req.params.id);
-  // console.log('orderBeforUpdate.user: ', orderBeforUpdate.user);
-  // console.log('req.user._id: ', req.user._id);
-  // console.log('so sánh: ', orderBeforUpdate.user === req.user._id);
-  if (
-    req.user.role === 'user' &&
-    !(orderBeforUpdate.user.toString() === req.user._id.toString())
-  ) {
-    return next(
-      new AppError('User does not have permition to cancel this order', 400)
-    );
-  }
-  if (
-    orderBeforUpdate.orderStatus === 'fail' ||
-    orderBeforUpdate.orderStatus === 'done'
-  ) {
-    return next(
-      new AppError('Order had already fail/done please create new one', 400)
-    );
-  }
-  if (
-    req.user.role === 'user' &&
-    orderBeforUpdate.orderStatus !== 'new' &&
-    req.body.orderStatus === 'fail'
-  ) {
-    return next(
-      new AppError(
-        "User can't update order to fail if order status different from new",
-        400
-      )
-    );
-  }
-  if (
-    req.user.role === 'user' &&
-    (req.body.orderStatus === 'done' || req.body.orderStatus === 'processing')
-  ) {
-    return next(
-      new AppError("User can't update order to done or processing", 400)
-    );
-  }
-  if (
-    orderBeforUpdate.paymentResult.status === false &&
-    req.body.orderStatus === 'done'
-  ) {
-    return next(
-      new AppError('Please pay for the order before update status to done', 400)
-    );
-  }
-
-  if (
-    orderBeforUpdate.orderStatus === 'processing' &&
-    req.body.orderStatus === 'new'
-  ) {
-    return next(new AppError('You cannot update order status to new', 400));
-  }
-  const order = await Order.findByIdAndUpdate(
-    req.params.id,
-    //   ['new', 'processing', 'done', 'fail'],
-    { orderStatus: req.body.orderStatus },
-    {
-      new: true,
-      runValidators: true,
-    }
-  );
-  if (!order) {
-    return next(new AppError('No orderument found with that ID', 404));
-  }
-
-  //   thêm ở đây nếu update với orderstatus ===fail thì cập nhật lại stock
-
-  res.status(200).json({ status: 'success', data: { data: order } });
-});
+exports.updateOrder = factory.updateOne(Order);
 
 exports.getAllOrdersByUser = catchAsync(async (req, res, next) => {
   const page = req.query.page * 1 || 1;
@@ -121,4 +46,58 @@ exports.getAllOrdersByUser = catchAsync(async (req, res, next) => {
     currentPage: page,
     data: { data: order },
   });
+});
+
+// restrictTo('admin')
+exports.acceptOrder = catchAsync(async (req, res, next) => {
+  req.body.orderStatus = 'processing';
+  next();
+});
+
+exports.deleteOrder = catchAsync(async (req, res, next) => {
+  const orderBeforUpdate = await Order.findById(req.params.id);
+  if (
+    orderBeforUpdate.orderStatus === 'fail' ||
+    orderBeforUpdate.orderStatus === 'done'
+  )
+    return next(new AppError('Cannot update completed order', 400));
+
+  if (req.user.role === 'user' && orderBeforUpdate.orderStatus !== 'new')
+    return next(
+      new AppError('User cannot delete order after it was processing', 400)
+    );
+
+  if (
+    req.user.role === 'user' &&
+    !(orderBeforUpdate.user.toString() === req.user._id.toString())
+  ) {
+    return next(
+      new AppError('User does not have owned to cancel this order', 400)
+    );
+  }
+
+  req.body.orderStatus = 'fail';
+  next();
+});
+
+// restricTo('admin)
+exports.completeOrder = catchAsync(async (req, res, next) => {
+  const orderBeforUpdate = await Order.findById(req.params.id);
+  if (
+    orderBeforUpdate.orderStatus === 'fail' ||
+    orderBeforUpdate.orderStatus === 'done'
+  )
+    return next(new AppError('Cannot update completed order', 400));
+  if (
+    orderBeforUpdate.paymentMethod !== 'COD' &&
+    orderBeforUpdate.paymentResult.status === false
+  )
+    return next(new AppError('Please pay for the order through Paypal', 400));
+  req.body.paymentResult = {
+    status: true,
+    updateTime: new Date(Date.now()),
+  };
+
+  req.body.orderStatus = 'done';
+  next();
 });

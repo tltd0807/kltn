@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 
 const Product = require('./../models/productModel');
+const Voucher = require('./../models/voucherModel');
 const AppError = require('../utils/appError');
 // còn thiếu chỗ shippingAddress
 const orderSchema = new mongoose.Schema(
@@ -103,6 +104,9 @@ orderSchema.pre(/^find/, function (next) {
     path: 'product',
     select:
       'id name price discount color gender imageCover inventory customeId',
+  }).populate({
+    path: 'user',
+    select: '-addresses',
   });
 
   next();
@@ -158,12 +162,26 @@ orderSchema.pre('findOneAndUpdate', async function (next) {
 });
 
 // Calculate totalPrice
-orderSchema.pre('save', function (next) {
+orderSchema.pre('save', async function (next) {
+  let voucherNumber = 0;
+  if (this.voucher) {
+    const today = new Date(Date.now());
+    const appliedVoucher = await Voucher.findById(this.voucher);
+    if (appliedVoucher.expireDate < today)
+      return next(new AppError('Voucher is expired', 400));
+
+    if (appliedVoucher.startDate > today)
+      return next(new AppError('Voucher is not avaiable yet', 400));
+
+    voucherNumber = appliedVoucher.discount;
+  }
+
   /*eslint no-return-assign: "error"*/
-  this.totalPrice = this.orderItems.reduce(
-    (total, item) => (total += item.price * item.quantity),
-    0
-  );
+  this.totalPrice =
+    this.orderItems.reduce(
+      (total, item) => (total += item.price * item.quantity),
+      0
+    ) - voucherNumber;
   next();
 });
 

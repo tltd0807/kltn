@@ -14,21 +14,6 @@ const voucherShema = mongoose.Schema({
     min: 0,
   },
 });
-// voucherShema.pre(/^find/, function (next) {
-//   // tourSchema.pre('find', function (next) {
-//   // "this" refer to the query object
-//   this.find({
-//     startDate: {
-//       $gte: Date.now(),
-//     },
-//     expireDate: {
-//       $lte: Date.now(),
-//     },
-//   });
-//   this.startDate = Date.now();
-
-//   next();
-// });
 
 const Voucher = mongoose.model('Voucher', voucherShema);
 

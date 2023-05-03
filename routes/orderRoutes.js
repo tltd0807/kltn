@@ -7,7 +7,6 @@ const router = express.Router();
 
 router.use(authController.protect);
 
-// Get all order user(account) go to user route /getMe or something like that
 router
   .route('/')
   .get(authController.restrictTo('admin'), orderController.getAllOrders)
@@ -19,7 +18,19 @@ router.route('/user').get(orderController.getAllOrdersByUser);
 router
   .route('/:id')
   .get(orderController.getOrder)
-  .patch(authController.restrictTo('admin'), orderController.updateOrderStatus)
-  .delete(orderController.updateToFail, orderController.updateOrderStatus);
+  .patch(
+    authController.restrictTo('admin'),
+    orderController.acceptOrder,
+    orderController.updateOrder
+  )
+  .delete(orderController.deleteOrder, orderController.updateOrder);
+
+router
+  .route('/admin/:id')
+  .patch(
+    authController.restrictTo('admin'),
+    orderController.completeOrder,
+    orderController.updateOrder
+  );
 
 module.exports = router;
