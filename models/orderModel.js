@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const Product = require('./../models/productModel');
 const Voucher = require('./../models/voucherModel');
 const AppError = require('../utils/appError');
+
 // còn thiếu chỗ shippingAddress
 const orderSchema = new mongoose.Schema(
   {
@@ -12,19 +13,6 @@ const orderSchema = new mongoose.Schema(
           type: mongoose.Schema.ObjectId,
           ref: 'Product',
           required: [true, 'orderItem must belong to a product.'],
-        },
-        // Lưu lại discount cũ
-        discount: {
-          // add validator ở đây kiểm tra 0-90%
-          type: Number,
-          default: 0,
-          validate: {
-            // Just work on CREATE and SAVE
-            validator: function (val) {
-              return val >= 0 && val <= 90;
-            },
-            message: 'discount percent must be between 0 and 90',
-          },
         },
         // Price lấy ở productPrice lúc tạo để lưu riêng nên k cần viết middle lấy từ product
         price: {
@@ -55,10 +43,16 @@ const orderSchema = new mongoose.Schema(
       default: 'new',
       enum: ['new', 'processing', 'done', 'fail'],
     },
-
+    shippingPrice: {
+      type: Number,
+      default: 0,
+    },
     createdAt: {
       type: Date,
       default: Date.now(),
+    },
+    doneAt: {
+      type: Date,
     },
     paymentMethod: {
       type: String,
@@ -79,17 +73,29 @@ const orderSchema = new mongoose.Schema(
     },
     // Không ref mà lấy data từ user r lưu lại lúc create luôn
     address: {
-      phoneNo: {
-        type: String,
-        require: true,
-      },
-      addresDetail: {
-        type: String,
-        require: true,
-      },
       fullName: {
         type: String,
-        require: true,
+        require: [true, 'Please provide name'],
+      },
+      phoneNo: {
+        type: String,
+        require: [true, 'Please provide phone number'],
+      },
+      address: {
+        type: String,
+        require: [true, 'Please provide phone number'],
+      },
+      city: {
+        type: String,
+        require: [true, 'Please provide city'],
+      },
+      district: {
+        type: String,
+        require: [true, 'Please provide district'],
+      },
+      ward: {
+        type: String,
+        require: [true, 'Please provide ward'],
       },
     },
   },
@@ -101,9 +107,8 @@ const orderSchema = new mongoose.Schema(
 
 orderSchema.pre(/^find/, function (next) {
   this.populate({
-    path: 'product',
-    select:
-      'id name price discount color gender imageCover inventory customeId',
+    path: 'orderItems.product',
+    select: 'id name price discount color gender imageCover customeId',
   }).populate({
     path: 'user',
     select: '-addresses',

@@ -152,6 +152,9 @@ exports.updatedAdresses = catchAsync(async (req, res, next) => {
       item.fullName = req.body.fullName || item.fullName;
       item.address = req.body.address || item.address;
       item.phoneNo = req.body.phoneNo || item.phoneNo;
+      item.city = req.body.city || item.city;
+      item.district = req.body.district || item.district;
+      item.ward = req.body.ward || item.ward;
     }
     return item;
   });

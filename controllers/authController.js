@@ -161,13 +161,14 @@ exports.forgotPassword = catchAsync(async (req, res, next) => {
   // )}/api/v1/users/resetPassword/${resetToken}`;
   const resetURL = `${process.env.FE_SERVER}/resetPassword/${resetToken}`;
 
-  const message = `Forgot your password? Submit a PATCH request with your new password and passwordConfirm to: ${resetURL}.\nIf you didn't forget your password, please ignore this email!`;
+  const message = `<p>Forgot your password? Submit a PATCH request with your new password and passwordConfirm to:<a href='${resetURL}'>Here</a> .</br>If you didn't forget your password, please ignore this email!</p>`;
 
   try {
     await sendEmail({
       email: user.email,
       subject: 'Your password reset token (valid for 10 min)',
       message,
+      type: 'forgot',
     });
 
     res.status(200).json({

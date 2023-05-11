@@ -44,6 +44,18 @@ const userSchema = mongoose.Schema({
         type: String,
         require: [true, 'Please provide phone number'],
       },
+      city: {
+        type: String,
+        require: [true, 'Please provide city'],
+      },
+      district: {
+        type: String,
+        require: [true, 'Please provide district'],
+      },
+      ward: {
+        type: String,
+        require: [true, 'Please provide ward'],
+      },
     },
   ],
   password: {

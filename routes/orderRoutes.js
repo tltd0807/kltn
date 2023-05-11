@@ -13,7 +13,8 @@ router
   .post(orderController.getMe, orderController.createNewOrder);
 // UserId get from logged user
 router.route('/user').get(orderController.getAllOrdersByUser);
-
+//Khi thanh toán ở trang orderDetail thì xài cái này hoặc thanh toán xong rồi mới tạo
+router.route('/payment/:id').patch(orderController.updateOrder);
 // viết cập nhật done cho order riêng
 router
   .route('/:id')

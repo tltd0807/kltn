@@ -4,9 +4,10 @@ const Order = require('./../models/orderModel');
 const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/appError');
 const APIFeatures = require('../utils/apiFeatures');
+const sendEmail = require('../utils/email');
 
 exports.getAllOrders = factory.getAll(Order);
-exports.createNewOrder = factory.createOne(Order);
+
 exports.getOrder = factory.getOne(Order);
 exports.getMe = (req, res, next) => {
   req.body.user = req.user._id;
@@ -100,4 +101,31 @@ exports.completeOrder = catchAsync(async (req, res, next) => {
 
   req.body.orderStatus = 'done';
   next();
+});
+exports.createNewOrder = catchAsync(async (req, res) => {
+  const newOrder = await Order.create(req.body);
+  const order = await Order.findById(newOrder._id)
+    .populate({
+      path: 'orderItems.product',
+      select: 'id name price discount color gender imageCover customeId',
+    })
+    .populate({
+      path: 'user',
+      select: 'email firstName',
+    })
+    .populate({
+      path: 'voucher',
+    });
+  await sendEmail({
+    order,
+    type: 'confirm',
+    email: req.user.email,
+    subject: 'Cảm ơn bạn đã đặt hàng',
+  });
+  res.status(201).json({
+    message: 'success',
+    data: {
+      data: order,
+    },
+  });
 });
