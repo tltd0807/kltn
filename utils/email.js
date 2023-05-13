@@ -1,7 +1,7 @@
 const nodemailer = require('nodemailer');
 
 const payOrderEmailTemplate = (order) => {
-  console.log('payOrderEmailTemplate: ', order);
+  // console.log('payOrderEmailTemplate: ', order);
   let voucherDiscount = 0;
   if (order.voucher) voucherDiscount = order.voucher.discount;
   return `<h1>Thanks for shopping with us</h1>
@@ -73,10 +73,8 @@ const payOrderEmailTemplate = (order) => {
   <p>
   ${order.address.fullName},<br/>
   ${order.address.phoneNo},<br/>
-  ${order.address.address},<br/>
-  ${order.address.city},<br/>
-  ${order.address.ward},<br/>
-  ${order.address.district}<br/>
+  ${order.address.address}, ${order.address.ward},
+  ${order.address.district}, ${order.address.city}.
   </p>
   <hr/>
   <p>

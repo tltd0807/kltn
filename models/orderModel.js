@@ -109,10 +109,14 @@ orderSchema.pre(/^find/, function (next) {
   this.populate({
     path: 'orderItems.product',
     select: 'id name price discount color gender imageCover customeId',
-  }).populate({
-    path: 'user',
-    select: '-addresses',
-  });
+  })
+    .populate({
+      path: 'user',
+      select: '-addresses',
+    })
+    .populate({
+      path: 'voucher',
+    });
 
   next();
 });

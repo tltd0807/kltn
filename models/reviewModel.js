@@ -15,12 +15,15 @@ const reviewSchema = new mongoose.Schema(
     },
     rating: {
       type: Number,
+      required: [true, 'Review must have a rating!'],
       min: 1,
       max: 5,
     },
+    productSize: {
+      type: String,
+    },
     comment: {
       type: String,
-      required: [true, 'Review can not have empty comment!'],
     },
     isApproved: {
       type: Boolean,
@@ -28,7 +31,7 @@ const reviewSchema = new mongoose.Schema(
     },
     createdAt: {
       type: Date,
-      default: Date.now,
+      default: Date.now(),
     },
   },
   {
@@ -36,10 +39,13 @@ const reviewSchema = new mongoose.Schema(
     toObject: { virtuals: true },
   }
 );
+
+reviewSchema.index({ product: 1, user: 1 }, { unique: true });
+
 reviewSchema.pre(/^find/, function (next) {
   this.populate({
     path: 'user',
-    select: 'name photo',
+    select: 'firstName lastName photo',
   });
   next();
 });
@@ -48,6 +54,9 @@ reviewSchema.statics.calcAverageRatings = async function (productId) {
   const stats = await this.aggregate([
     {
       $match: { product: productId },
+    },
+    {
+      $match: { isApproved: true },
     },
     {
       $group: {

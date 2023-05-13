@@ -106,6 +106,7 @@ productSchema.virtual('reviews', {
   ref: 'Review',
   foreignField: 'product',
   localField: '_id',
+  match: { isApproved: true },
 });
 
 productSchema.pre('save', function (next) {
