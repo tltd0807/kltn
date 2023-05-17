@@ -57,6 +57,7 @@ exports.acceptOrder = catchAsync(async (req, res, next) => {
 
 exports.deleteOrder = catchAsync(async (req, res, next) => {
   const orderBeforUpdate = await Order.findById(req.params.id);
+
   if (
     orderBeforUpdate.orderStatus === 'fail' ||
     orderBeforUpdate.orderStatus === 'done'

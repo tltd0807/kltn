@@ -19,9 +19,6 @@ const reviewSchema = new mongoose.Schema(
       min: 1,
       max: 5,
     },
-    productSize: {
-      type: String,
-    },
     comment: {
       type: String,
     },

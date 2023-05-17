@@ -141,8 +141,9 @@ orderSchema.pre('findOneAndUpdate', async function (next) {
       );
 
       const product = products.find(
-        (item) => item._id.toString() === orderItem.product.toString()
+        (item) => item._id.toString() === orderItem.product._id.toString()
       );
+      // console.log(orderItem.product.toString());
       const iventoryOfSize = product.inventory.find(
         (item) => item.size === orderItem.size
       );
@@ -207,6 +208,7 @@ orderSchema.pre('save', async function (next) {
   // 1 check stock is enough
   this.orderItems.forEach((orderItem) => {
     const product = products.find(
+      // trước khi save nên  orderItem.product chưa có populate
       (item) => item._id.toString() === orderItem.product.toString()
     );
     const iventoryOfSize = product.inventory.find(
