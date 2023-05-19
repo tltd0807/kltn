@@ -7,6 +7,7 @@ const AppError = require('./../utils/appError');
 const Product = require('./../models/productModel');
 const catchAsync = require('./../utils/catchAsync');
 const factory = require('./handlerFactory');
+const APIFeatures = require('../utils/apiFeatures');
 
 const multerStorage = multer.memoryStorage();
 const multerFilter = (req, file, cb) => {
@@ -105,8 +106,6 @@ exports.checkId = catchAsync(async (req, res, next) => {
 
 exports.createNewProduct = factory.createOne(Product);
 
-exports.getAllProducts = factory.getAll(Product);
-
 exports.getProductById = factory.getOne(Product, { path: 'reviews' });
 
 exports.updateProduct = factory.updateOne(Product);
@@ -148,11 +147,42 @@ exports.updateProductInventory = catchAsync(async (req, res, next) => {
   return next();
 });
 
-// exports.setCurrentProduct = catchAsync(async (req, res, next) => {
-//   const currentProduct = await Product.findById(req.params.id);
-//   console.log('currentProduct.name: ', currentProduct.name);
-//   req.body.name = currentProduct.name;
-//   req.body.color = currentProduct.color;
-//   req.body.category = currentProduct.category;
-//   return next();
-// });
+exports.getAllProducts = catchAsync(async (req, res, next) => {
+  // to allow for nested GET reviews on product (hack)
+  let filter = {};
+  if (req.params.productId) filter = { product: req.params.productId };
+  if (req.query.name) {
+    const newSearch = { $regex: `\\b${req.query.name}\\b`, $options: 'i' };
+    delete req.query.name;
+    req.query.name = { ...newSearch };
+  }
+  if (req.query.gender) {
+    const newSearch = { $eq: `${req.query.gender}` };
+    delete req.query.gender;
+    req.query.gender = { ...newSearch };
+  }
+  const page = req.query.page * 1 || 1;
+  const limit = req.query.limit * 1 || 10000;
+  // execute query
+  const features = new APIFeatures(Product.find(filter), req.query)
+    .filter()
+    .sort()
+    .limitFields()
+    .paginate();
+  let countFilter = {};
+  if (req.query.category) countFilter = { category: req.query.category };
+  const total = await Product.countDocuments(countFilter);
+  const docs = await features.query;
+
+  const totalPage =
+    total % limit === 0 ? total / limit : Math.round(total / limit + 0.5);
+  // Send response
+  res.status(200).json({
+    status: 'success',
+    requestAt: req.requestTime,
+    result: docs.length,
+    totalPage: totalPage,
+    currentPage: page,
+    data: { data: docs },
+  });
+});

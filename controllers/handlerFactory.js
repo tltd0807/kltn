@@ -75,7 +75,6 @@ exports.getAll = (Model) =>
 
     const totalPage =
       total % limit === 0 ? total / limit : Math.round(total / limit + 0.5);
-
     // Send response
     res.status(200).json({
       status: 'success',
