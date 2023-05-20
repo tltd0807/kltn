@@ -171,11 +171,18 @@ exports.getAllProducts = catchAsync(async (req, res, next) => {
     .paginate();
   let countFilter = {};
   if (req.query.category) countFilter = { category: req.query.category };
+  if (req.query.gender) countFilter.gender = req.query.gender;
+  if (req.query.discount)
+    countFilter = {
+      ...countFilter,
+      discount: { $gt: req.query.discount.gt - 0 },
+    };
   const total = await Product.countDocuments(countFilter);
   const docs = await features.query;
 
   const totalPage =
     total % limit === 0 ? total / limit : Math.round(total / limit + 0.5);
+  // console.log(total);
   // Send response
   res.status(200).json({
     status: 'success',
