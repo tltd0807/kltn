@@ -219,11 +219,10 @@ exports.updatePassword = catchAsync(async (req, res, next) => {
   const user = await User.findOne({ _id: req.user.id }).select('+password');
 
   // 2) Check if POSTed current password is correct
-  console.log(await user.correctPassword(req.body.password, user.password));
+  // console.log(await user.correctPassword(req.body.password, user.password));
   if (!(await user.correctPassword(req.body.password, user.password))) {
     return next(new AppError('Your current password is wrong.', 401));
   }
-  console.log('first');
   // 3) If so, update password
   user.password = req.body.newPassword;
   user.passwordConfirm = req.body.newPasswordConfirm;

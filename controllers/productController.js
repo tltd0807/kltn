@@ -61,12 +61,14 @@ exports.resizeProductImages = catchAsync(async (req, res, next) => {
     .jpeg({ quality: 100 })
     .toFile(`${dir}/${req.body.imageCover}`);
 
-  req.body.imageCover = `${req.protocol}://${req.get('host')}/img/products/${
-    req.body.category
-  }/${req.user.id}/${productFolderName.replaceAll(' ', '-')}/${
-    req.body.imageCover
-  }`;
-
+  // req.body.imageCover = `${req.protocol}://${req.get('host')}/img/products/${
+  //   req.body.category
+  // }/${req.user.id}/${productFolderName.replaceAll(' ', '-')}/${
+  //   req.body.imageCover
+  // }`;
+  req.body.imageCover = `/img/products/${req.body.category}/${
+    req.user.id
+  }/${productFolderName.replaceAll(' ', '-')}/${req.body.imageCover}`;
   // 2)images
   req.body.images = [];
   await Promise.all(
@@ -83,9 +85,9 @@ exports.resizeProductImages = catchAsync(async (req, res, next) => {
         .toFile(`${dir}/${filename}`);
 
       req.body.images.push(
-        `${req.protocol}://${req.get('host')}/img/products/${
-          req.body.category
-        }/${req.user.id}/${productFolderName.replaceAll(' ', '-')}/${filename}`
+        `/img/products/${req.body.category}/${
+          req.user.id
+        }/${productFolderName.replaceAll(' ', '-')}/${filename}`
       );
     })
   );
@@ -105,8 +107,6 @@ exports.checkId = catchAsync(async (req, res, next) => {
 });
 
 exports.createNewProduct = factory.createOne(Product);
-
-exports.getProductById = factory.getOne(Product, { path: 'reviews' });
 
 exports.updateProduct = factory.updateOne(Product);
 
@@ -164,7 +164,7 @@ exports.getAllProducts = catchAsync(async (req, res, next) => {
   const page = req.query.page * 1 || 1;
   const limit = req.query.limit * 1 || 10000;
   // execute query
-  const features = new APIFeatures(Product.find(filter), req.query)
+  const features = new APIFeatures(Product.find(filter).lean(), req.query)
     .filter()
     .sort()
     .limitFields()
@@ -180,6 +180,16 @@ exports.getAllProducts = catchAsync(async (req, res, next) => {
   const total = await Product.countDocuments(countFilter);
   const docs = await features.query;
 
+  // eslint-disable-next-line arrow-body-style
+  const newDocs = docs.map((product) => {
+    return {
+      ...product,
+      imageCover: `${req.protocol}://${req.get('host')}${product.imageCover}`,
+      images: [...product.images].map(
+        (image) => `${req.protocol}://${req.get('host')}${image}`
+      ),
+    };
+  });
   const totalPage =
     total % limit === 0 ? total / limit : Math.round(total / limit + 0.5);
   // console.log(total);
@@ -190,6 +200,28 @@ exports.getAllProducts = catchAsync(async (req, res, next) => {
     result: docs.length,
     totalPage: totalPage,
     currentPage: page,
-    data: { data: docs },
+    data: {
+      data: newDocs,
+    },
   });
+});
+// exports.getProductById = factory.getOne(Product, );
+exports.getProductById = catchAsync(async (req, res, next) => {
+  const query = Product.findById(req.params.id)
+    .lean()
+    .populate({ path: 'reviews' });
+  const product = await query;
+  // eslint-disable-next-line arrow-body-style
+
+  if (!product) {
+    return next(new AppError('No document found with that ID', 404));
+  }
+  const newDocs = {
+    ...product,
+    imageCover: `${req.protocol}://${req.get('host')}${product.imageCover}`,
+    images: [...product.images].map(
+      (image) => `${req.protocol}://${req.get('host')}${image}`
+    ),
+  };
+  res.status(200).json({ status: 'success', data: { data: newDocs } });
 });
