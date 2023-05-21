@@ -150,11 +150,21 @@ exports.updateProductInventory = catchAsync(async (req, res, next) => {
 exports.getAllProducts = catchAsync(async (req, res, next) => {
   // to allow for nested GET reviews on product (hack)
   let filter = {};
+  let countFilter = {};
+
   if (req.params.productId) filter = { product: req.params.productId };
   if (req.query.name) {
-    const newSearch = { $regex: `\\b${req.query.name}\\b`, $options: 'i' };
+    // const newSearch = { $regex: `\\b${req.query.name}\\b`, $options: 'i' };
+    const newSearch = { $regex: req.query.name, $options: 'si' };
     delete req.query.name;
-    req.query.name = { ...newSearch };
+    // req.query.name = { ...newSearch };
+    filter = {
+      $or: [{ name: { ...newSearch } }, { customeId: { ...newSearch } }],
+    };
+    countFilter = {
+      ...countFilter,
+      $or: [{ name: { ...newSearch } }, { customeId: { ...newSearch } }],
+    };
   }
   if (req.query.gender) {
     const newSearch = { $eq: `${req.query.gender}` };
@@ -169,7 +179,6 @@ exports.getAllProducts = catchAsync(async (req, res, next) => {
     .sort()
     .limitFields()
     .paginate();
-  let countFilter = {};
   if (req.query.category) countFilter = { category: req.query.category };
   if (req.query.gender) countFilter.gender = req.query.gender;
   if (req.query.discount)
