@@ -76,8 +76,13 @@ exports.login = catchAsync(async (req, res, next) => {
       )
     );
   }
+  const userAfter = await User.findOne({ email }).lean().select('+password');
+  const newUser = {
+    ...userAfter,
+    photo: `${req.protocol}://${req.get('host')}${userAfter.photo}`,
+  };
   // 3) If everything ok, send token to client
-  createSendToken(user, 200, res);
+  createSendToken(newUser, 200, res);
 });
 
 exports.protect = catchAsync(async (req, res, next) => {

@@ -23,7 +23,7 @@ const userSchema = mongoose.Schema({
   },
   photo: {
     type: String,
-    default: 'http://127.0.0.1:8000/img/default.jpg',
+    default: '/img/default.jpg',
   },
   role: {
     type: String,

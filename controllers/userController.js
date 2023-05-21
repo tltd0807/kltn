@@ -6,7 +6,7 @@ const User = require('./../models/userModel');
 
 const AppError = require('../utils/appError');
 const catchAsync = require('./../utils/catchAsync');
-const factory = require('./handlerFactory');
+const APIFeatures = require('../utils/apiFeatures');
 
 const multerStorage = multer.memoryStorage();
 
@@ -66,9 +66,7 @@ exports.updateMe = catchAsync(async (req, res, next) => {
   // 2) Update user document
   const filteredBody = filterObj(req.body, 'firstName', 'lastName', 'email');
   if (req.file)
-    filteredBody.photo = `${req.protocol}://${req.get('host')}/img/users/${
-      req.user.id
-    }/${req.file.filename}`;
+    filteredBody.photo = `/img/users/${req.user.id}/${req.file.filename}`;
   const updateUser = await User.findByIdAndUpdate(req.user.id, filteredBody, {
     new: true,
     runValidators: true,
@@ -107,14 +105,56 @@ exports.updateUser = catchAsync(async (req, res, next) => {
 });
 
 exports.getUserByEmail = catchAsync(async (req, res, next) => {
-  const user = await User.findOne({ email: req.body.email });
+  const user = await User.findOne({ email: req.body.email }).lean();
   if (!user) {
     return next(new AppError('No document found with that ID', 404));
   }
   res.status(200).json({ status: 'success', data: { data: user } });
 });
-exports.getAllUsers = factory.getAll(User);
-exports.getUser = factory.getOne(User);
+exports.getAllUsers = catchAsync(async (req, res, next) => {
+  const page = req.query.page * 1 || 1;
+  const limit = req.query.limit * 1 || 10000;
+  // execute query
+  const features = new APIFeatures(User.find().lean(), req.query)
+    .filter()
+    .sort()
+    .limitFields()
+    .paginate();
+
+  const total = await User.countDocuments();
+  const docs = await features.query;
+
+  // eslint-disable-next-line arrow-body-style
+  const newDocs = docs.map((user) => {
+    return {
+      ...user,
+      photo: `${req.protocol}://${req.get('host')}${user.photo}`,
+    };
+  });
+  const totalPage =
+    total % limit === 0 ? total / limit : Math.round(total / limit + 0.5);
+  // Send response
+  res.status(200).json({
+    status: 'success',
+    requestAt: req.requestTime,
+    result: docs.length,
+    totalPage: totalPage,
+    currentPage: page,
+    data: { data: newDocs },
+  });
+});
+exports.getUser = catchAsync(async (req, res, next) => {
+  const query = User.findById(req.params.id).lean();
+  const doc = await query;
+  if (!doc) {
+    return next(new AppError('No document found with that ID', 404));
+  }
+  const newUser = {
+    ...doc,
+    photo: `${req.protocol}://${req.get('host')}${doc.photo}`,
+  };
+  res.status(200).json({ status: 'success', data: { data: newUser } });
+});
 // change password k suwr dungj update vif nó k có save hay create nên nó k có chạy validator
 
 exports.createAllAdress = catchAsync(async (req, res, next) => {

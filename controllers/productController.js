@@ -231,6 +231,16 @@ exports.getProductById = catchAsync(async (req, res, next) => {
     images: [...product.images].map(
       (image) => `${req.protocol}://${req.get('host')}${image}`
     ),
+    // eslint-disable-next-line arrow-body-style
+    reviews: product.reviews.map((review) => {
+      return {
+        ...review,
+        user: {
+          ...review.user,
+          photo: `${req.protocol}://${req.get('host')}${review.user.photo}`,
+        },
+      };
+    }),
   };
   res.status(200).json({ status: 'success', data: { data: newDocs } });
 });
