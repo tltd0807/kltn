@@ -6,9 +6,89 @@ const AppError = require('../utils/appError');
 const APIFeatures = require('../utils/apiFeatures');
 const sendEmail = require('../utils/email');
 
-exports.getAllOrders = factory.getAll(Order);
+exports.getAllOrders = catchAsync(async (req, res, next) => {
+  // to allow for nested GET reviews on product (hack)
+  let filter = {};
+  if (req.params.productId) filter = { product: req.params.productId };
+  if (req.query.name) {
+    const newSearch = { $regex: `\\b${req.query.name}\\b`, $options: 'i' };
+    delete req.query.name;
+    req.query.name = { ...newSearch };
+  }
+  if (req.query.gender) {
+    const newSearch = { $eq: `${req.query.gender}` };
+    delete req.query.gender;
+    req.query.gender = { ...newSearch };
+  }
+  const page = req.query.page * 1 || 1;
+  const limit = req.query.limit * 1 || 10000;
+  // execute query
+  const features = new APIFeatures(Order.find(filter).lean(), req.query)
+    .filter()
+    .sort()
+    .limitFields()
+    .paginate();
 
-exports.getOrder = factory.getOne(Order);
+  const total = await Order.countDocuments();
+  const docs = await features.query;
+
+  // eslint-disable-next-line arrow-body-style
+  const newDocs = docs.map((order) => {
+    return {
+      ...order,
+      // eslint-disable-next-line arrow-body-style
+      orderItems: order.orderItems.map((item) => {
+        return {
+          ...item,
+          product: {
+            ...item.product,
+            imageCover: `${req.protocol}://${req.get('host')}${
+              item.product.imageCover
+            }`,
+          },
+        };
+      }),
+    };
+  });
+
+  const totalPage =
+    total % limit === 0 ? total / limit : Math.round(total / limit + 0.5);
+  // Send response
+  res.status(200).json({
+    status: 'success',
+    requestAt: req.requestTime,
+    result: docs.length,
+    totalPage: totalPage,
+    currentPage: page,
+    data: { data: newDocs },
+  });
+});
+
+exports.getOrder = catchAsync(async (req, res, next) => {
+  const query = Order.findById(req.params.id).lean();
+  const order = await query;
+  if (!order) {
+    return next(new AppError('No document found with that ID', 404));
+  }
+
+  const newOrder = {
+    ...order,
+    // eslint-disable-next-line arrow-body-style
+    orderItems: order.orderItems.map((item) => {
+      return {
+        ...item,
+        product: {
+          ...item.product,
+          imageCover: `${req.protocol}://${req.get('host')}${
+            item.product.imageCover
+          }`,
+        },
+      };
+    }),
+  };
+
+  res.status(200).json({ status: 'success', data: { data: newOrder } });
+});
 exports.getMe = (req, res, next) => {
   req.body.user = req.user._id;
   next();
@@ -24,7 +104,7 @@ exports.getAllOrdersByUser = catchAsync(async (req, res, next) => {
   // execute query
 
   const features = new APIFeatures(
-    Order.find({ user: req.user._id }),
+    Order.find({ user: req.user._id }).lean(),
     req.query
   )
     .filter()
@@ -33,8 +113,25 @@ exports.getAllOrdersByUser = catchAsync(async (req, res, next) => {
     .paginate();
 
   const total = await Order.countDocuments();
-  const order = await features.query;
-
+  const orders = await features.query;
+  // eslint-disable-next-line arrow-body-style
+  const newDocs = orders.map((order) => {
+    return {
+      ...order,
+      // eslint-disable-next-line arrow-body-style
+      orderItems: order.orderItems.map((item) => {
+        return {
+          ...item,
+          product: {
+            ...item.product,
+            imageCover: `${req.protocol}://${req.get('host')}${
+              item.product.imageCover
+            }`,
+          },
+        };
+      }),
+    };
+  });
   const totalPage =
     total % limit === 0 ? total / limit : Math.round(total / limit + 0.5);
 
@@ -42,10 +139,10 @@ exports.getAllOrdersByUser = catchAsync(async (req, res, next) => {
   res.status(200).json({
     status: 'success',
     requestAt: req.requestTime,
-    result: order.length,
+    result: orders.length,
     totalPage: totalPage,
     currentPage: page,
-    data: { data: order },
+    data: { data: newDocs },
   });
 });
 

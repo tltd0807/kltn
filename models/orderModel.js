@@ -117,10 +117,8 @@ orderSchema.pre(/^find/, function (next) {
     .populate({
       path: 'voucher',
     });
-
   next();
 });
-
 orderSchema.pre('findOneAndUpdate', async function (next) {
   const updateData = this.getUpdate();
   // console.log(updateData);
