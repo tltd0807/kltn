@@ -6,6 +6,9 @@ const orderController = require('./../controllers/orderController');
 const router = express.Router();
 
 router.use(authController.protect);
+router
+  .route('/order-stats')
+  .get(authController.restrictTo('admin'), orderController.getOrderStats);
 
 router
   .route('/')

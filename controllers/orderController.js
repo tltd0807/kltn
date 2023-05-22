@@ -227,3 +227,56 @@ exports.createNewOrder = catchAsync(async (req, res) => {
     },
   });
 });
+exports.getOrderStats = async (req, res) => {
+  // const top = req.params.top * 1;
+  try {
+    const orderStats = await Order.aggregate([
+      {
+        $group: {
+          _id: '$orderStatus',
+          numOrder: { $sum: 1 },
+          sales: { $sum: '$totalPrice' },
+        },
+      },
+      {
+        $addFields: { status: '$_id' },
+      },
+      {
+        $project: {
+          _id: 0,
+        },
+      },
+    ]);
+    const dailyOrders = await Order.aggregate([
+      {
+        $group: {
+          _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } },
+          orders: { $sum: 1 },
+          sales: { $sum: '$totalPrice' },
+        },
+      },
+      { $sort: { _id: 1 } },
+      {
+        $addFields: { date: '$_id' },
+      },
+      {
+        $project: {
+          _id: 0,
+        },
+      },
+    ]);
+
+    res.status(200).json({
+      status: 'success',
+      data: {
+        orderStats,
+        dailyOrders,
+      },
+    });
+  } catch (err) {
+    res.status(404).json({
+      status: 'fail',
+      message: err,
+    });
+  }
+};

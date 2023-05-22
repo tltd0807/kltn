@@ -104,7 +104,6 @@ const orderSchema = new mongoose.Schema(
     toObject: { virtuals: true },
   }
 );
-
 orderSchema.pre(/^find/, function (next) {
   this.populate({
     path: 'orderItems.product',
@@ -189,7 +188,9 @@ orderSchema.pre('save', async function (next) {
     this.orderItems.reduce(
       (total, item) => (total += item.price * item.quantity),
       0
-    ) - voucherNumber;
+    ) -
+    voucherNumber +
+    this.shippingPrice;
   next();
 });
 

@@ -244,3 +244,89 @@ exports.getProductById = catchAsync(async (req, res, next) => {
   };
   res.status(200).json({ status: 'success', data: { data: newDocs } });
 });
+
+exports.getProductStats = async (req, res) => {
+  try {
+    const stats = await Product.aggregate([
+      {
+        $match: { isShow: { $ne: false } },
+      },
+      {
+        $group: {
+          _id: { $toUpper: '$gender' },
+          numProducts: { $sum: 1 },
+          numRatings: { $sum: '$numberOfReview' },
+          avgPrice: { $avg: '$price' },
+          minPrice: { $min: '$price' },
+          maxPrice: { $max: '$price' },
+        },
+      },
+      {
+        $sort: { avgPrice: 1 },
+      },
+    ]);
+
+    res.status(200).json({
+      status: 'success',
+      data: {
+        stats,
+      },
+    });
+  } catch (err) {
+    res.status(404).json({
+      status: 'fail',
+      message: err,
+    });
+  }
+};
+
+// tính sold amount theo từng sản phẩm lấy top 3 sp
+
+exports.bestSeller = async (req, res) => {
+  const top = req.params.top * 1;
+  try {
+    const stats = await Product.aggregate([
+      {
+        $match: { isShow: { $ne: false } },
+      },
+      { $unwind: '$inventory' },
+      {
+        $group: {
+          _id: '$customeId',
+          sold: { $sum: '$inventory.soldAmount' },
+        },
+      },
+      { $sort: { sold: -1 } },
+      { $limit: top },
+    ]);
+    // console.log(stats);
+    const bestSellerProducts = [];
+    stats.forEach(async (item) =>
+      bestSellerProducts.push(
+        Product.find({ customeId: item._id }).select(
+          'customeId _id name coverImage'
+        )
+      )
+    );
+    const products = await Promise.all(bestSellerProducts);
+    // console.log(products);
+    // eslint-disable-next-line arrow-body-style
+    const newStat = stats.map((item, index) => {
+      return {
+        ...item,
+        product: products[index],
+      };
+    });
+    res.status(200).json({
+      status: 'success',
+      data: {
+        stats: newStat,
+      },
+    });
+  } catch (err) {
+    res.status(404).json({
+      status: 'fail',
+      message: err,
+    });
+  }
+};

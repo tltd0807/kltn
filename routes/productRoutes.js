@@ -6,6 +6,9 @@ const reviewRouter = require('./../routes/reviewRoutes');
 const router = express.Router();
 router.use('/:productId/reviews', reviewRouter);
 router.get('/', productController.getAllProducts);
+router.route('/product-stats').get(productController.getProductStats);
+router.route('/best-seller/:top').get(productController.bestSeller);
+
 router.get('/:id', productController.getProductById);
 
 router.use(authController.protect);
