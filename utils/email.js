@@ -1,4 +1,18 @@
 const nodemailer = require('nodemailer');
+const { google } = require('googleapis');
+
+const { OAuth2 } = google.auth;
+const OAUTH_PLAYGROUND = 'https://developers.google.com/oauthplayground';
+
+const oauth2Client = new OAuth2(
+  process.env.MAILING_SERVICE_CLIENT_ID,
+  process.env.MAILING_SERVICE_CLIENT_SERECT,
+  process.env.MAILING_SERVICE_REFRESH_TOKEN,
+  OAUTH_PLAYGROUND
+);
+oauth2Client.setCredentials({
+  refresh_token: process.env.MAILING_SERVICE_REFRESH_TOKEN,
+});
 
 const payOrderEmailTemplate = (order) => {
   // console.log('payOrderEmailTemplate: ', order);
@@ -85,27 +99,31 @@ const payOrderEmailTemplate = (order) => {
 
 const sendEmail = async (options) => {
   // 1) Create a transporter
+  const accessToken = await oauth2Client.getAccessToken();
+
   const transporter = nodemailer.createTransport({
-    host: process.env.EMAIL_HOST,
-    port: process.env.EMAIL_PORT,
+    service: 'gmail',
     auth: {
-      user: process.env.EMAIL_USERNAME,
-      pass: process.env.EMAIL_PASSWORD,
+      type: 'OAuth2',
+      user: process.env.SENDER_EMAIL_ADDRESS,
+      clientId: process.env.MAILING_SERVICE_CLIENT_ID,
+      clientSecret: process.env.MAILING_SERVICE_CLIENT_SERECT,
+      refreshToken: process.env.MAILING_SERVICE_REFRESH_TOKEN,
+      accessToken,
     },
   });
-
   // 2) Define the email options
   // check options.type
   const mailOptions =
     options.type === 'confirm'
       ? {
-          from: 'Test Mail <test@gmail.com>',
+          from: process.env.EMAIL_USERNAME,
           to: options.email,
           subject: options.subject,
           html: payOrderEmailTemplate(options.order),
         }
       : {
-          from: 'Test Mail <test@gmail.com>',
+          from: process.env.EMAIL_USERNAME,
           to: options.email,
           subject: options.subject,
           html: options.message,
@@ -113,7 +131,13 @@ const sendEmail = async (options) => {
         };
 
   // 3) Actually send the email
-  await transporter.sendMail(mailOptions);
+  transporter.sendMail(mailOptions, (err, info) => {
+    if (err) {
+      console.log(err);
+      return;
+    }
+    transporter.close();
+  });
 };
 
 module.exports = sendEmail;
