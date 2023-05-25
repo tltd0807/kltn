@@ -253,7 +253,7 @@ exports.getProductStats = async (req, res) => {
       },
       {
         $group: {
-          _id: { $toUpper: '$gender' },
+          _id: '$category',
           numProducts: { $sum: 1 },
           numRatings: { $sum: '$numberOfReview' },
           avgPrice: { $avg: '$price' },
@@ -264,12 +264,25 @@ exports.getProductStats = async (req, res) => {
       {
         $sort: { avgPrice: 1 },
       },
+      {
+        $addFields: { category: '$_id' },
+      },
+      {
+        $project: {
+          _id: 0,
+        },
+      },
     ]);
+
+    const newStats = await Product.populate(stats, {
+      path: 'category',
+      select: 'name',
+    });
 
     res.status(200).json({
       status: 'success',
       data: {
-        stats,
+        stats: newStats,
       },
     });
   } catch (err) {

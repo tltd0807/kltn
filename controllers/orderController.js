@@ -5,6 +5,7 @@ const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/appError');
 const APIFeatures = require('../utils/apiFeatures');
 const sendEmail = require('../utils/email');
+const User = require('../models/userModel');
 
 exports.getAllOrders = catchAsync(async (req, res, next) => {
   // to allow for nested GET reviews on product (hack)
@@ -248,6 +249,7 @@ exports.getOrderStats = async (req, res) => {
       },
     ]);
     const dailyOrders = await Order.aggregate([
+      { $match: { orderStatus: { $eq: 'done' } } },
       {
         $group: {
           _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } },
@@ -265,12 +267,20 @@ exports.getOrderStats = async (req, res) => {
         },
       },
     ]);
-
+    const users = await User.aggregate([
+      {
+        $group: {
+          _id: null,
+          numUsers: { $sum: 1 },
+        },
+      },
+    ]);
     res.status(200).json({
       status: 'success',
       data: {
         orderStats,
         dailyOrders,
+        users,
       },
     });
   } catch (err) {
